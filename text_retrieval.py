@@ -13,13 +13,8 @@ def retrieve_text_from_vector_db(query, index_path = "vector_db\\text_faiss_inde
     
     # Perform similarity search on the FAISS index
     text_results = text_vectorstore.similarity_search_by_vector(query_embedding, k=top_k)
-    retrieved_texts = [result.page_content for result in text_results]
-    
-   
-    
-  
+    retrieved_texts = [result.page_content for result in text_results]   
     return retrieved_texts
 
 
-print(retrieve_text_from_vector_db("What is sound."))
 

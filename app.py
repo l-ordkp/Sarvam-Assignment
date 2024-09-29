@@ -1,12 +1,11 @@
-from fastapi import FastAPI
+from fastapi import FastAPI,HTTPException
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from chain_of_thought import load_generator  
 from text_retrieval import retrieve_text_from_vector_db
 from image_retrieval import retrieve_images
 from generation import get_gemini_response  
-from langchain.vectorstores import FAISS
-from langchain.embeddings import HuggingFaceEmbeddings
+from agent import send_message_and_handle_functions
 
 # Define the input model for FastAPI
 class QueryRequest(BaseModel):
@@ -30,6 +29,24 @@ async def process_query(request: QueryRequest):
     response_text = get_gemini_response(response, query)
     image_path = retrieve_images(query)
     return JSONResponse(content={"response": response_text, "image_path": image_path})
+
+# Define the FastAPI endpoint to handle user queries
+@app.post("/AI-agent/")
+async def ask_agent(query_request: QueryRequest):
+    try:
+        # Get the user query from the request
+        user_query = query_request.query
+        
+        # Send the message to the agent and get the response
+        agent_response = send_message_and_handle_functions(user_query)
+        
+        # Return the agent's response
+        return {"response": agent_response}
+    
+    except Exception as e:
+        # Handle any errors and return a 500 status code
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 if __name__ == "__main__":
     import uvicorn
