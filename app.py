@@ -6,10 +6,14 @@ from text_retrieval import retrieve_text_from_vector_db
 from image_retrieval import retrieve_images
 from generation import get_gemini_response  
 from agent import send_message_and_handle_functions
+from tts import text_to_speech
 
 # Define the input model for FastAPI
 class QueryRequest(BaseModel):
     query: str
+class TextToSpeechRequest(BaseModel):
+    query: str
+    output_file_path: str
 
 app = FastAPI()
 
@@ -47,6 +51,24 @@ async def ask_agent(query_request: QueryRequest):
         # Handle any errors and return a 500 status code
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.post("/AI-Voice-agent/")
+async def ask_agent(query_request: TextToSpeechRequest):
+    try:
+        # Get the user query from the request
+        user_query = query_request.query
+        path = query_request.output_file_path
+        
+        # Send the message to the agent and get the response
+        agent_response = send_message_and_handle_functions(user_query)
+        
+        voice = text_to_speech(text=agent_response, output_file=path)
+        
+        # Return the agent's response
+        return {"response": voice}
+    
+    except Exception as e:
+        # Handle any errors and return a 500 status code
+        raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
     import uvicorn
